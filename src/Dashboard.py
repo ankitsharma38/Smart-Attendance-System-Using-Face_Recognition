@@ -87,15 +87,7 @@ class Dashboard(tk.Tk):
         self.clear_content()
         page = tk.Frame(self.content_frame, bg="#ECF0F1")
         page.pack(expand=True, fill="both")
-        
-        # (Optional) Add a banner image – update the file path as needed.
-        try:
-            self.banner_image = tk.PhotoImage(file="path/to/your/banner.png")
-            banner_label = tk.Label(page, image=self.banner_image, bg="#ECF0F1")
-            banner_label.pack(pady=20)
-        except Exception as e:
-            print("Banner image not found or failed to load:", e)
-        
+                
         welcome_label = tk.Label(page, text="Welcome to the Smart Attendance System Dashboard",
                                  font=("Helvetica", 24, "bold"), bg="#ECF0F1", fg="#2C3E50")
         welcome_label.pack(pady=(10, 5))
