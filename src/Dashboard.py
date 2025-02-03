@@ -1,21 +1,15 @@
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox, simpledialog
+from tkinter import ttk, filedialog, messagebox
 import threading
 import pandas as pd
 import os
 
-# Imported modules – ensure these files are in your src/ folder.
 import enroll      # Contains enroll_student() – your actual enrollment code.
 import recognize   # Contains recognize_students() – your actual recognition code.
 from utils import load_student_data  # Loads all student data from the students folder
 
 # View Attendance Code (remains unchanged)
 def view_attendance_file():
-    """
-    Open a file dialog to select an attendance Excel file and load it as a DataFrame.
-    Returns:
-        tuple: (DataFrame, file_path) or (None, None) if cancelled or error.
-    """
     file_path = filedialog.askopenfilename(
         title="Select Attendance File",
         filetypes=[("Excel files", "*.xlsx"), ("All files", "*.*")]
@@ -88,13 +82,41 @@ class Dashboard(tk.Tk):
             self.current_page.destroy()
             self.current_page = None
 
+    # Ensure this method is inside the class
     def show_welcome_page(self):
         self.clear_content()
         page = tk.Frame(self.content_frame, bg="#ECF0F1")
         page.pack(expand=True, fill="both")
+        
+        # (Optional) Add a banner image – update the file path as needed.
+        try:
+            self.banner_image = tk.PhotoImage(file="path/to/your/banner.png")
+            banner_label = tk.Label(page, image=self.banner_image, bg="#ECF0F1")
+            banner_label.pack(pady=20)
+        except Exception as e:
+            print("Banner image not found or failed to load:", e)
+        
         welcome_label = tk.Label(page, text="Welcome to the Smart Attendance System Dashboard",
-                                 font=("Helvetica", 18, "bold"), bg="#ECF0F1", fg="#2C3E50")
-        welcome_label.pack(expand=True)
+                                 font=("Helvetica", 24, "bold"), bg="#ECF0F1", fg="#2C3E50")
+        welcome_label.pack(pady=(10, 5))
+        
+        subtitle_label = tk.Label(page, text="Simplify Attendance Management with Face Recognition",
+                                  font=("Helvetica", 16), bg="#ECF0F1", fg="#34495E")
+        subtitle_label.pack(pady=(0, 20))
+        
+        separator = tk.Frame(page, bg="#BDC3C7", height=2, width=600)
+        separator.pack(pady=10)
+        
+        tagline = tk.Label(page, text="Empowering Institutions with Cutting-Edge Technology",
+                           font=("Helvetica", 14, "italic"), bg="#ECF0F1", fg="#7F8C8D")
+        tagline.pack(pady=(10, 20))
+        
+        get_started_btn = tk.Button(page, text="Get Started", font=("Helvetica", 16, "bold"),
+                                    bg="#1ABC9C", fg="white", padx=20, pady=10, bd=0,
+                                    activebackground="#16A085", cursor="hand2",
+                                    command=self.show_mark_attendance_page)
+        get_started_btn.pack(pady=20)
+        
         self.current_page = page
 
     def show_add_student_page(self):
@@ -102,25 +124,25 @@ class Dashboard(tk.Tk):
         page = tk.Frame(self.content_frame, bg="#ECF0F1", padx=20, pady=20)
         page.pack(expand=True, fill="both")
         
-        title = tk.Label(page, text="Add Student", font=("Helvetica", 18, "bold"), bg="#ECF0F1", fg="#34495E")
+        title = tk.Label(page, text="Add Student", font=("Helvetica", 18, "bold"),
+                         bg="#ECF0F1", fg="#34495E")
         title.pack(pady=(0,20))
         
         form_frame = tk.Frame(page, bg="#ECF0F1")
         form_frame.pack(pady=10)
         
-        # Student Name
         tk.Label(form_frame, text="Student Name:", font=("Helvetica", 12), bg="#ECF0F1")\
           .grid(row=0, column=0, sticky="e", padx=10, pady=5)
         name_entry = tk.Entry(form_frame, font=("Helvetica", 12), width=30)
         name_entry.grid(row=0, column=1, padx=10, pady=5)
         
-        # Enrollment ID
         tk.Label(form_frame, text="Enrollment ID:", font=("Helvetica", 12), bg="#ECF0F1")\
           .grid(row=1, column=0, sticky="e", padx=10, pady=5)
         enroll_entry = tk.Entry(form_frame, font=("Helvetica", 12), width=30)
         enroll_entry.grid(row=1, column=1, padx=10, pady=5)
         
-        success_label = tk.Label(page, text="", font=("Helvetica", 12, "italic"), bg="#ECF0F1", fg="#27AE60")
+        success_label = tk.Label(page, text="", font=("Helvetica", 12, "italic"),
+                                 bg="#ECF0F1", fg="#27AE60")
         success_label.pack(pady=10)
         
         def run_enrollment():
@@ -155,7 +177,8 @@ class Dashboard(tk.Tk):
         self.clear_content()
         page = tk.Frame(self.content_frame, bg="#ECF0F1", padx=20, pady=20)
         page.pack(expand=True, fill="both")
-        title = tk.Label(page, text="Mark Attendance", font=("Helvetica", 18, "bold"), bg="#ECF0F1", fg="#34495E")
+        title = tk.Label(page, text="Mark Attendance", font=("Helvetica", 18, "bold"),
+                         bg="#ECF0F1", fg="#34495E")
         title.pack(pady=(0,20))
         
         def start_recognition():
@@ -171,7 +194,8 @@ class Dashboard(tk.Tk):
         self.clear_content()
         page = tk.Frame(self.content_frame, bg="#ECF0F1", padx=20, pady=20)
         page.pack(expand=True, fill="both")
-        title = tk.Label(page, text="View Attendance", font=("Helvetica", 18, "bold"), bg="#ECF0F1", fg="#34495E")
+        title = tk.Label(page, text="View Attendance", font=("Helvetica", 18, "bold"),
+                         bg="#ECF0F1", fg="#34495E")
         title.pack(pady=(0,20))
         
         def load_and_display():
@@ -201,11 +225,6 @@ class Dashboard(tk.Tk):
         self.current_page = page
 
     def show_view_students_page(self):
-        """
-        Loads all student data (using load_student_data) and displays each student's
-        enrollment ID, name, and the number of encodings in a Treeview.
-        Also provides a button to delete the selected student.
-        """
         self.clear_content()
         page = tk.Frame(self.content_frame, bg="#ECF0F1", padx=20, pady=20)
         page.pack(expand=True, fill="both")
@@ -213,7 +232,6 @@ class Dashboard(tk.Tk):
                          bg="#ECF0F1", fg="#34495E")
         title.pack(pady=(0,20))
         
-        # Create the Treeview to display student data.
         tree = ttk.Treeview(page)
         tree.pack(expand=True, fill='both')
         columns = ("Enrollment", "Name", "Encodings")
@@ -223,7 +241,6 @@ class Dashboard(tk.Tk):
             tree.heading(col, text=col)
             tree.column(col, width=150)
         
-        # Load student data from your students folder.
         student_data = load_student_data()
         if not student_data:
             messagebox.showinfo("No Data", "No student data found.")
@@ -234,20 +251,15 @@ class Dashboard(tk.Tk):
                 encodings = len(student.get("encodings", []))
                 tree.insert("", "end", values=(enrollment_id, name, encodings))
         
-        # Function to delete a selected student.
         def delete_selected_student():
             selected_item = tree.selection()
             if not selected_item:
                 messagebox.showwarning("No Selection", "Please select a student to delete.")
                 return
-            # Get the values from the selected row.
             values = tree.item(selected_item, "values")
             enrollment_id, name, _ = values
-            # Confirm deletion.
             if not messagebox.askyesno("Confirm Deletion", f"Delete student {name} ({enrollment_id})?"):
                 return
-            # Construct the expected file name.
-            # (Assuming file naming convention: enrollmentID_name.pkl, with spaces replaced by underscores)
             file_name = f"{enrollment_id}_{name.replace(' ', '_')}.pkl"
             student_dir = os.path.join("..", "data", "students")
             file_path = os.path.join(student_dir, file_name)
@@ -261,7 +273,6 @@ class Dashboard(tk.Tk):
             else:
                 messagebox.showwarning("Not Found", "Student file not found. It may have already been deleted.")
         
-        # Delete button below the Treeview.
         tk.Button(page, text="Delete Selected Student", font=("Helvetica", 12, "bold"),
                   command=delete_selected_student, bg="#E74C3C", fg="white", padx=20, pady=10)\
                   .pack(pady=10)
