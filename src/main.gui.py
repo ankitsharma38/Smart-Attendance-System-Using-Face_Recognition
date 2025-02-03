@@ -5,7 +5,7 @@ import threading
 
 # Import your existing modules
 import enroll      # Contains enroll_student(...)
-import recognize   # Contains recognize_students(...)
+import recognize   # Contains recognize_students
 
 # Import view_attendance (from the code above)
 from tkinter import filedialog
