@@ -1,0 +1,11 @@
+pandas
+numpy
+opencv-python
+face_recognition
+opencv-python-headless
+streamlit
+
+openpyxl
+Flask
+
+
