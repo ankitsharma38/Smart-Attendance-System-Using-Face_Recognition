@@ -87,7 +87,8 @@ class Dashboard(tk.Tk):
         self.clear_content()
         page = tk.Frame(self.content_frame, bg="#ECF0F1")
         page.pack(expand=True, fill="both")
-                
+        
+        
         welcome_label = tk.Label(page, text="Welcome to the Smart Attendance System Dashboard",
                                  font=("Helvetica", 24, "bold"), bg="#ECF0F1", fg="#2C3E50")
         welcome_label.pack(pady=(10, 5))
