@@ -90,7 +90,7 @@ class Dashboard(tk.Tk):
         page.place(relx=0.5, rely=0.5, anchor="center")
         
         welcome_label = tk.Label(page, text="Welcome to the Smart Attendance System Dashboard",
-                                 font=("Helvetica", 24, "bold"), bg="#ECF0F1", fg="#2C3E50")
+                                 font=("Helvetica", 20, "bold"), bg="#ECF0F1", fg="#2C3E50")
         welcome_label.pack(pady=(10, 5))
         
         subtitle_label = tk.Label(page, text="Simplify Attendance Management with Face Recognition",
