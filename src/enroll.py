@@ -4,13 +4,14 @@ import numpy as np
 import pickle
 import os
 
-def enroll_student(student_name, enrollment_id, save_dir='../data/students', num_images=5):
+def enroll_student(student_name, enrollment_id, student_class, save_dir='../data/students', num_images=5):
     """
     Enroll a student by capturing their face encodings.
 
     Args:
         student_name (str): Name of the student.
         enrollment_id (str): Unique enrollment ID.
+        student_class (str): Class of the student.
         save_dir (str): Directory where the student data will be saved.
         num_images (int): Number of face samples to capture.
     """
@@ -21,7 +22,7 @@ def enroll_student(student_name, enrollment_id, save_dir='../data/students', num
     video_capture = cv2.VideoCapture(0)
     collected_encodings = []
 
-    print(f"Enrolling student: {student_name} | Enrollment ID: {enrollment_id}")
+    print(f"Enrolling student: {student_name} | Enrollment ID: {enrollment_id} | Class: {student_class}")
     print("Press 'c' to capture a frame when your face is clearly visible.")
     print("Press 'q' to quit early if needed.")
 
@@ -37,8 +38,6 @@ def enroll_student(student_name, enrollment_id, save_dir='../data/students', num
 
         # Convert BGR (OpenCV default) to RGB (face_recognition uses RGB)
         rgb_small_frame = small_frame[:, :, ::-1]
-
-        # Ensure the image array is contiguous
         rgb_small_frame = np.ascontiguousarray(rgb_small_frame)
 
         # Detect face locations in the frame
@@ -83,6 +82,7 @@ def enroll_student(student_name, enrollment_id, save_dir='../data/students', num
         student_data = {
             "name": student_name,
             "enrollment_id": enrollment_id,
+            "class": student_class,
             "encodings": collected_encodings
         }
         # The file name can be structured as enrollmentID_name.pkl
@@ -98,4 +98,5 @@ if __name__ == '__main__':
     # Collect student details from the user
     student_name = input("Enter student name: ").strip()
     enrollment_id = input("Enter enrollment ID: ").strip()
-    enroll_student(student_name, enrollment_id)
+    student_class = input("Enter student class: ").strip()
+    enroll_student(student_name, enrollment_id, student_class)

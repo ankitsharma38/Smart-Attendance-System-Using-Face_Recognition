@@ -4,7 +4,7 @@ import threading
 import pandas as pd
 import os
 
-import enroll      # Contains enroll_student() – your actual enrollment code.
+import enroll      # Update enroll.enroll_student() to accept a third parameter for class
 import recognize   # Contains recognize_students() – your actual recognition code.
 from utils import load_student_data  # Loads all student data from the students folder
 
@@ -82,12 +82,12 @@ class Dashboard(tk.Tk):
             self.current_page.destroy()
             self.current_page = None
 
-    # Ensure this method is inside the class
+    # Centered Welcome Page
     def show_welcome_page(self):
         self.clear_content()
+        # Create a frame to center content using place()
         page = tk.Frame(self.content_frame, bg="#ECF0F1")
-        page.pack(expand=True, fill="both")
-        
+        page.place(relx=0.5, rely=0.5, anchor="center")
         
         welcome_label = tk.Label(page, text="Welcome to the Smart Attendance System Dashboard",
                                  font=("Helvetica", 24, "bold"), bg="#ECF0F1", fg="#2C3E50")
@@ -112,6 +112,7 @@ class Dashboard(tk.Tk):
         
         self.current_page = page
 
+    # Updated Add Student Page with extra "Class" field
     def show_add_student_page(self):
         self.clear_content()
         page = tk.Frame(self.content_frame, bg="#ECF0F1", padx=20, pady=20)
@@ -124,15 +125,23 @@ class Dashboard(tk.Tk):
         form_frame = tk.Frame(page, bg="#ECF0F1")
         form_frame.pack(pady=10)
         
+        # Student Name
         tk.Label(form_frame, text="Student Name:", font=("Helvetica", 12), bg="#ECF0F1")\
           .grid(row=0, column=0, sticky="e", padx=10, pady=5)
         name_entry = tk.Entry(form_frame, font=("Helvetica", 12), width=30)
         name_entry.grid(row=0, column=1, padx=10, pady=5)
         
+        # Enrollment ID
         tk.Label(form_frame, text="Enrollment ID:", font=("Helvetica", 12), bg="#ECF0F1")\
           .grid(row=1, column=0, sticky="e", padx=10, pady=5)
         enroll_entry = tk.Entry(form_frame, font=("Helvetica", 12), width=30)
         enroll_entry.grid(row=1, column=1, padx=10, pady=5)
+        
+        # Class Field
+        tk.Label(form_frame, text="Class:", font=("Helvetica", 12), bg="#ECF0F1")\
+          .grid(row=2, column=0, sticky="e", padx=10, pady=5)
+        class_entry = tk.Entry(form_frame, font=("Helvetica", 12), width=30)
+        class_entry.grid(row=2, column=1, padx=10, pady=5)
         
         success_label = tk.Label(page, text="", font=("Helvetica", 12, "italic"),
                                  bg="#ECF0F1", fg="#27AE60")
@@ -141,11 +150,14 @@ class Dashboard(tk.Tk):
         def run_enrollment():
             student_name = name_entry.get().strip()
             enrollment_id = enroll_entry.get().strip()
-            if not student_name or not enrollment_id:
-                page.after(0, lambda: messagebox.showwarning("Input Error", "Please enter both name and enrollment ID."))
+            student_class = class_entry.get().strip()
+            if not student_name or not enrollment_id or not student_class:
+                page.after(0, lambda: messagebox.showwarning("Input Error",
+                                                              "Please enter name, enrollment ID, and class."))
                 return
             try:
-                enroll.enroll_student(student_name, enrollment_id)
+                # Call your actual enrollment function with the extra parameter.
+                enroll.enroll_student(student_name, enrollment_id, student_class)
             except Exception as e:
                 page.after(0, lambda: messagebox.showerror("Error", f"Enrollment failed: {e}"))
                 return
@@ -155,6 +167,7 @@ class Dashboard(tk.Tk):
             success_label.config(text="Student Added Successfully")
             name_entry.delete(0, tk.END)
             enroll_entry.delete(0, tk.END)
+            class_entry.delete(0, tk.END)
             page.after(3000, lambda: success_label.config(text=""))
         
         def start_enrollment():
@@ -195,14 +208,24 @@ class Dashboard(tk.Tk):
             df, file_path = view_attendance_file()
             if df is None:
                 return
+            
+            # Define the expected column order.
+            expected_columns = ["Enrollment", "Name", "Class", "Time Stamp"]
+            # Add missing columns if necessary.
+            for col in expected_columns:
+                if col not in df.columns:
+                    df[col] = "N/A"
+            # Reorder the DataFrame columns.
+            df = df[expected_columns]
+            
             for widget in page.winfo_children():
                 if isinstance(widget, ttk.Treeview) or isinstance(widget, tk.Scrollbar):
                     widget.destroy()
             tree = ttk.Treeview(page)
             tree.pack(expand=True, fill='both')
-            tree["columns"] = list(df.columns)
+            tree["columns"] = expected_columns
             tree["show"] = "headings"
-            for col in df.columns:
+            for col in expected_columns:
                 tree.heading(col, text=col)
                 tree.column(col, width=150)
             for _, row in df.iterrows():
@@ -227,7 +250,7 @@ class Dashboard(tk.Tk):
         
         tree = ttk.Treeview(page)
         tree.pack(expand=True, fill='both')
-        columns = ("Enrollment", "Name", "Encodings")
+        columns = ("Enrollment", "Name", "Class", "Encodings")
         tree["columns"] = columns
         tree["show"] = "headings"
         for col in columns:
@@ -241,8 +264,9 @@ class Dashboard(tk.Tk):
             for student in student_data:
                 enrollment_id = student.get("enrollment_id", "N/A")
                 name = student.get("name", "N/A")
+                student_class = student.get("class", "N/A")
                 encodings = len(student.get("encodings", []))
-                tree.insert("", "end", values=(enrollment_id, name, encodings))
+                tree.insert("", "end", values=(enrollment_id, name, student_class, encodings))
         
         def delete_selected_student():
             selected_item = tree.selection()
@@ -250,7 +274,7 @@ class Dashboard(tk.Tk):
                 messagebox.showwarning("No Selection", "Please select a student to delete.")
                 return
             values = tree.item(selected_item, "values")
-            enrollment_id, name, _ = values
+            enrollment_id, name, student_class, _ = values
             if not messagebox.askyesno("Confirm Deletion", f"Delete student {name} ({enrollment_id})?"):
                 return
             file_name = f"{enrollment_id}_{name.replace(' ', '_')}.pkl"
