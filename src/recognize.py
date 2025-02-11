@@ -9,6 +9,9 @@ import threading
 import tkinter as tk
 from utils import load_student_data
 
+# Global subject variable. Change as needed.
+SUBJECT = "Data Visualization"
+
 def show_popup(message="Attendance Marked Successfully", duration=2000):
     """
     Display a popup window with the given message for the specified duration (in milliseconds).
@@ -16,7 +19,6 @@ def show_popup(message="Attendance Marked Successfully", duration=2000):
     def popup():
         root = tk.Tk()
         root.title("Notification")
-        # Set the window size and center it on the screen
         window_width = 300
         window_height = 100
         screen_width = root.winfo_screenwidth()
@@ -30,27 +32,29 @@ def show_popup(message="Attendance Marked Successfully", duration=2000):
         root.mainloop()
     threading.Thread(target=popup, daemon=True).start()
 
-def mark_attendance(student_name, enrollment_id, student_class, attendance_dir='../data'):
+def mark_attendance(student_name, enrollment_id, student_class, subject, attendance_dir='../data'):
     """
     Mark the attendance of a student in an Excel file.
-    The file is named with the current date (attendance_YYYY-MM-DD.xlsx) and has columns:
-    Enrollment, Name, Class, Time Stamp (12-hr format).
+    The file is named with the current date and subject (e.g. attendance_Machine Learning_YYYY-MM-DD.xlsx)
+    and has columns: Enrollment, Name, Class, Subject, Time Stamp.
     
     Args:
         student_name (str): Name of the student.
         enrollment_id (str): Unique enrollment ID.
         student_class (str): The class of the student.
+        subject (str): Subject for which attendance is being marked.
         attendance_dir (str): Directory where attendance files are stored.
     """
     if not os.path.exists(attendance_dir):
         os.makedirs(attendance_dir)
     current_date = datetime.now().strftime('%Y-%m-%d')
-    file_path = os.path.join(attendance_dir, f"attendance_{current_date}.xlsx")
+    file_path = os.path.join(attendance_dir, f"attendance_{subject}_{current_date}.xlsx")
     timestamp = datetime.now().strftime('%I:%M:%S %p')
     new_row = {
         'Enrollment': enrollment_id,
         'Name': student_name,
         'Class': student_class,
+        'Subject': subject,
         'Time Stamp': timestamp
     }
     if os.path.exists(file_path):
@@ -58,17 +62,17 @@ def mark_attendance(student_name, enrollment_id, student_class, attendance_dir='
             df = pd.read_excel(file_path)
         except Exception as e:
             print("Error reading the existing attendance file:", e)
-            df = pd.DataFrame(columns=['Enrollment', 'Name', 'Class', 'Time Stamp'])
+            df = pd.DataFrame(columns=['Enrollment', 'Name', 'Class', 'Subject', 'Time Stamp'])
     else:
-        df = pd.DataFrame(columns=['Enrollment', 'Name', 'Class', 'Time Stamp'])
+        df = pd.DataFrame(columns=['Enrollment', 'Name', 'Class', 'Subject', 'Time Stamp'])
     if enrollment_id in df['Enrollment'].values:
         print(f"Attendance already marked for {student_name}.")
     else:
         df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
         df.to_excel(file_path, index=False)
-        print(f"Attendance marked for {student_name} at {timestamp}")
+        print(f"Attendance marked for {student_name} at {timestamp} for subject: {subject}")
         show_popup()  # Display popup message
-
+        
 def recognize_students(video_source=0):
     """
     Recognize students from the video feed and mark their attendance.
@@ -81,7 +85,6 @@ def recognize_students(video_source=0):
     # Prepare known encodings and student info (including class)
     for data in student_data:
         known_encodings.extend(data['encodings'])
-        # Ensure that each student record includes the "class" key.
         student_info.extend([
             {
                 'name': data['name'],
@@ -100,12 +103,12 @@ def recognize_students(video_source=0):
             print("Failed to grab frame from webcam. Exiting...")
             break
 
-        # Resize frame for faster processing and convert from BGR to RGB
+        # Resize frame for faster processing and convert BGR to RGB.
         small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
         rgb_small_frame = small_frame[:, :, ::-1]
         rgb_small_frame = np.ascontiguousarray(rgb_small_frame)
 
-        # Detect faces and compute encodings
+        # Detect faces and compute encodings.
         face_locations = face_recognition.face_locations(rgb_small_frame)
         face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
 
@@ -120,20 +123,20 @@ def recognize_students(video_source=0):
                 enrollment_id = student['enrollment_id']
                 student_class = student.get('class', 'N/A')
                 if enrollment_id not in recognized_students:
-                    mark_attendance(name, enrollment_id, student_class)
+                    mark_attendance(name, enrollment_id, student_class, SUBJECT)
                     recognized_students.add(enrollment_id)
                 rect_color = (0, 255, 0)  # Green for recognized
             else:
                 name = "Unknown"
                 rect_color = (0, 0, 255)  # Red for unknown
 
-            # Scale back up face location coordinates
+            # Scale back up face location coordinates.
             top *= 4
             right *= 4
             bottom *= 4
             left *= 4
 
-            # Draw rectangle and label on the frame
+            # Draw rectangle and label on the frame.
             cv2.rectangle(frame, (left, top), (right, bottom), rect_color, 2)
             cv2.putText(frame, name, (left, top - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, rect_color, 2)

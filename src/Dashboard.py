@@ -8,7 +8,9 @@ import enroll      # Update enroll.enroll_student() to accept a third parameter 
 import recognize   # Contains recognize_students() – your actual recognition code.
 from utils import load_student_data  # Loads all student data from the students folder
 
-# View Attendance Code (remains unchanged)
+# Global subject variable; default value.
+SUBJECT = "Data Visualization"
+
 def view_attendance_file():
     file_path = filedialog.askopenfilename(
         title="Select Attendance File",
@@ -63,7 +65,6 @@ class Dashboard(tk.Tk):
             "pady": 10
         }
         
-        # Sidebar Buttons: Home, Add Student, Mark Attendance, View Attendance, View Students, Exit
         tk.Button(self.sidebar_frame, text="Home",
                   command=self.show_welcome_page, **btn_config).pack(pady=10)
         tk.Button(self.sidebar_frame, text="Add Student",
@@ -85,12 +86,11 @@ class Dashboard(tk.Tk):
     # Centered Welcome Page
     def show_welcome_page(self):
         self.clear_content()
-        # Create a frame to center content using place()
         page = tk.Frame(self.content_frame, bg="#ECF0F1")
         page.place(relx=0.5, rely=0.5, anchor="center")
         
         welcome_label = tk.Label(page, text="Welcome to the Smart Attendance System Dashboard",
-                                 font=("Helvetica", 20, "bold"), bg="#ECF0F1", fg="#2C3E50")
+                                 font=("Helvetica", 24, "bold"), bg="#ECF0F1", fg="#2C3E50")
         welcome_label.pack(pady=(10, 5))
         
         subtitle_label = tk.Label(page, text="Simplify Attendance Management with Face Recognition",
@@ -125,19 +125,16 @@ class Dashboard(tk.Tk):
         form_frame = tk.Frame(page, bg="#ECF0F1")
         form_frame.pack(pady=10)
         
-        # Student Name
         tk.Label(form_frame, text="Student Name:", font=("Helvetica", 12), bg="#ECF0F1")\
           .grid(row=0, column=0, sticky="e", padx=10, pady=5)
         name_entry = tk.Entry(form_frame, font=("Helvetica", 12), width=30)
         name_entry.grid(row=0, column=1, padx=10, pady=5)
         
-        # Enrollment ID
         tk.Label(form_frame, text="Enrollment ID:", font=("Helvetica", 12), bg="#ECF0F1")\
           .grid(row=1, column=0, sticky="e", padx=10, pady=5)
         enroll_entry = tk.Entry(form_frame, font=("Helvetica", 12), width=30)
         enroll_entry.grid(row=1, column=1, padx=10, pady=5)
         
-        # Class Field
         tk.Label(form_frame, text="Class:", font=("Helvetica", 12), bg="#ECF0F1")\
           .grid(row=2, column=0, sticky="e", padx=10, pady=5)
         class_entry = tk.Entry(form_frame, font=("Helvetica", 12), width=30)
@@ -156,7 +153,6 @@ class Dashboard(tk.Tk):
                                                               "Please enter name, enrollment ID, and class."))
                 return
             try:
-                # Call your actual enrollment function with the extra parameter.
                 enroll.enroll_student(student_name, enrollment_id, student_class)
             except Exception as e:
                 page.after(0, lambda: messagebox.showerror("Error", f"Enrollment failed: {e}"))
@@ -179,6 +175,7 @@ class Dashboard(tk.Tk):
         
         self.current_page = page
 
+    # Updated Mark Attendance Page with subject selection
     def show_mark_attendance_page(self):
         self.clear_content()
         page = tk.Frame(self.content_frame, bg="#ECF0F1", padx=20, pady=20)
@@ -187,7 +184,21 @@ class Dashboard(tk.Tk):
                          bg="#ECF0F1", fg="#34495E")
         title.pack(pady=(0,20))
         
+        # Subject selection label and combobox
+        subject_label = tk.Label(page, text="Select Subject:", font=("Helvetica", 14),
+                                 bg="#ECF0F1", fg="#34495E")
+        subject_label.pack(pady=(0,10))
+        
+        subject_list = ["Data Visualization", "Machine Learning", "App Development"]
+        subject_combo = ttk.Combobox(page, values=subject_list, font=("Helvetica", 12), state="readonly")
+        subject_combo.current(0)  # Default subject
+        subject_combo.pack(pady=(0,20))
+        
+        # When the recognition starts, we pass the subject from the combobox.
         def start_recognition():
+            selected_subject = subject_combo.get()
+            global SUBJECT
+            SUBJECT = selected_subject
             threading.Thread(target=recognize.recognize_students, daemon=True).start()
         
         tk.Button(page, text="Start Recognition", font=("Helvetica", 12, "bold"),
@@ -195,7 +206,7 @@ class Dashboard(tk.Tk):
                   .pack(pady=20)
         
         self.current_page = page
-
+#View Attendance       
     def show_view_attendance_page(self):
         self.clear_content()
         page = tk.Frame(self.content_frame, bg="#ECF0F1", padx=20, pady=20)
@@ -208,14 +219,11 @@ class Dashboard(tk.Tk):
             df, file_path = view_attendance_file()
             if df is None:
                 return
-            
             # Define the expected column order.
-            expected_columns = ["Enrollment", "Name", "Class", "Time Stamp"]
-            # Add missing columns if necessary.
+            expected_columns = ["Enrollment", "Name", "Class", "Subject", "Time Stamp"]
             for col in expected_columns:
                 if col not in df.columns:
                     df[col] = "N/A"
-            # Reorder the DataFrame columns.
             df = df[expected_columns]
             
             for widget in page.winfo_children():
