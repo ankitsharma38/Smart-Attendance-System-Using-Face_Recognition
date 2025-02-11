@@ -90,7 +90,7 @@ class Dashboard(tk.Tk):
         page.place(relx=0.5, rely=0.5, anchor="center")
         
         welcome_label = tk.Label(page, text="Welcome to the Smart Attendance System Dashboard",
-                                 font=("Helvetica", 24, "bold"), bg="#ECF0F1", fg="#2C3E50")
+                                 font=("Helvetica", 20, "bold"), bg="#ECF0F1", fg="#2C3E50")
         welcome_label.pack(pady=(10, 5))
         
         subtitle_label = tk.Label(page, text="Simplify Attendance Management with Face Recognition",
@@ -180,6 +180,7 @@ class Dashboard(tk.Tk):
         self.clear_content()
         page = tk.Frame(self.content_frame, bg="#ECF0F1", padx=20, pady=20)
         page.pack(expand=True, fill="both")
+        
         title = tk.Label(page, text="Mark Attendance", font=("Helvetica", 18, "bold"),
                          bg="#ECF0F1", fg="#34495E")
         title.pack(pady=(0,20))
@@ -194,19 +195,16 @@ class Dashboard(tk.Tk):
         subject_combo.current(0)  # Default subject
         subject_combo.pack(pady=(0,20))
         
-        # When the recognition starts, we pass the subject from the combobox.
         def start_recognition():
             selected_subject = subject_combo.get()
-            global SUBJECT
-            SUBJECT = selected_subject
-            threading.Thread(target=recognize.recognize_students, daemon=True).start()
+            threading.Thread(target=recognize.recognize_students, args=(0, selected_subject), daemon=True).start()
         
         tk.Button(page, text="Start Recognition", font=("Helvetica", 12, "bold"),
                   command=start_recognition, bg="#1ABC9C", fg="white", padx=20, pady=10)\
                   .pack(pady=20)
         
         self.current_page = page
-#View Attendance       
+
     def show_view_attendance_page(self):
         self.clear_content()
         page = tk.Frame(self.content_frame, bg="#ECF0F1", padx=20, pady=20)
@@ -219,18 +217,16 @@ class Dashboard(tk.Tk):
             df, file_path = view_attendance_file()
             if df is None:
                 return
-            # Define the expected column order.
             expected_columns = ["Enrollment", "Name", "Class", "Subject", "Time Stamp"]
             for col in expected_columns:
                 if col not in df.columns:
                     df[col] = "N/A"
             df = df[expected_columns]
-            
             for widget in page.winfo_children():
                 if isinstance(widget, ttk.Treeview) or isinstance(widget, tk.Scrollbar):
                     widget.destroy()
             tree = ttk.Treeview(page)
-            tree.pack(expand=True, fill='both')
+            tree.pack(expand=True, fill="both")
             tree["columns"] = expected_columns
             tree["show"] = "headings"
             for col in expected_columns:
@@ -257,7 +253,7 @@ class Dashboard(tk.Tk):
         title.pack(pady=(0,20))
         
         tree = ttk.Treeview(page)
-        tree.pack(expand=True, fill='both')
+        tree.pack(expand=True, fill="both")
         columns = ("Enrollment", "Name", "Class", "Encodings")
         tree["columns"] = columns
         tree["show"] = "headings"

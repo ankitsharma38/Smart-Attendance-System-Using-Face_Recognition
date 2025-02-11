@@ -72,16 +72,20 @@ def mark_attendance(student_name, enrollment_id, student_class, subject, attenda
         df.to_excel(file_path, index=False)
         print(f"Attendance marked for {student_name} at {timestamp} for subject: {subject}")
         show_popup()  # Display popup message
-        
-def recognize_students(video_source=0):
+
+def recognize_students(video_source=0, subject="Data Visualization"):
     """
     Recognize students from the video feed and mark their attendance.
     If a face is not recognized, a red rectangle is drawn and "Unknown" is displayed.
+    
+    Args:
+        video_source (int or str): Video source (default is 0 for webcam).
+        subject (str): The subject name to use when marking attendance.
     """
     student_data = load_student_data()
     known_encodings = []
     student_info = []
-
+    
     # Prepare known encodings and student info (including class)
     for data in student_data:
         known_encodings.extend(data['encodings'])
@@ -92,18 +96,18 @@ def recognize_students(video_source=0):
                 'class': data.get('class', 'N/A')
             }
         ] * len(data['encodings']))
-
+    
     video_capture = cv2.VideoCapture(video_source)
     recognized_students = set()
-    print("Starting video stream. Press 'q' to quit.")
-
+    print("Starting video stream for subject:", subject, ". Press 'q' to quit.")
+    
     while True:
         ret, frame = video_capture.read()
         if not ret:
             print("Failed to grab frame from webcam. Exiting...")
             break
 
-        # Resize frame for faster processing and convert BGR to RGB.
+        # Resize frame for faster processing and convert from BGR to RGB.
         small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
         rgb_small_frame = small_frame[:, :, ::-1]
         rgb_small_frame = np.ascontiguousarray(rgb_small_frame)
@@ -123,7 +127,7 @@ def recognize_students(video_source=0):
                 enrollment_id = student['enrollment_id']
                 student_class = student.get('class', 'N/A')
                 if enrollment_id not in recognized_students:
-                    mark_attendance(name, enrollment_id, student_class, SUBJECT)
+                    mark_attendance(name, enrollment_id, student_class, subject)
                     recognized_students.add(enrollment_id)
                 rect_color = (0, 255, 0)  # Green for recognized
             else:
@@ -147,6 +151,7 @@ def recognize_students(video_source=0):
 
     video_capture.release()
     cv2.destroyAllWindows()
+
 
 if __name__ == '__main__':
     recognize_students()
