@@ -4,11 +4,10 @@ import threading
 import pandas as pd
 import os
 
-import enroll      # Update enroll.enroll_student() to accept a third parameter for class
-import recognize   # Contains recognize_students() – your actual recognition code.
+import enroll      # for enrolling student 
+import recognize   # recognize the face ---actual recognition code.
 from utils import load_student_data  # Loads all student data from the students folder
 
-# Global subject variable; default value.
 SUBJECT = "Data Visualization"
 
 def view_attendance_file():
