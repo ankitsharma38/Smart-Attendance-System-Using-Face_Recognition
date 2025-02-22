@@ -61,3 +61,14 @@ The **Smart Attendance System** is a Python-based project that automates attenda
 
 ## Project Structure
 
+## 🚀Installation And setup
+
+### 📋 Prerequisites
+```bash
+Python >= 3.11 (for AI server)
+```
+# Setup environment variables
+```bash
+python -m venv env
+env\Scripts\activate
+```
