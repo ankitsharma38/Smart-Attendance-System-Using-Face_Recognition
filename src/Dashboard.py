@@ -3,7 +3,9 @@ from tkinter import ttk, filedialog, messagebox
 import threading
 import pandas as pd
 import os
+from datetime import datetime  # Added for report timestamp
 
+import report
 import enroll      # for enrolling student 
 import recognize   # recognize the face ---actual recognition code.
 from utils import load_student_data  # Loads all student data from the students folder
@@ -72,6 +74,8 @@ class Dashboard(tk.Tk):
                   command=self.show_mark_attendance_page, **btn_config).pack(pady=10)
         tk.Button(self.sidebar_frame, text="View Attendance",
                   command=self.show_view_attendance_page, **btn_config).pack(pady=10)
+        tk.Button(self.sidebar_frame, text="Generate Report",
+                  command=self.show_generate_report_page, **btn_config).pack(pady=10)
         tk.Button(self.sidebar_frame, text="View Students",
                   command=self.show_view_students_page, **btn_config).pack(pady=10)
         tk.Button(self.sidebar_frame, text="Exit",
@@ -295,6 +299,52 @@ class Dashboard(tk.Tk):
         
         tk.Button(page, text="Delete Selected Student", font=("Helvetica", 12, "bold"),
                   command=delete_selected_student, bg="#E74C3C", fg="white", padx=20, pady=10)\
+                  .pack(pady=10)
+        
+        self.current_page = page
+        
+    # Report generation
+    def show_generate_report_page(self):
+        self.clear_content()
+        page = tk.Frame(self.content_frame, bg="#ECF0F1", padx=20, pady=20)
+        page.pack(expand=True, fill="both")
+        
+        title = tk.Label(page, text="Generate Attendance Report", font=("Helvetica", 18, "bold"),
+                         bg="#ECF0F1", fg="#34495E")
+        title.pack(pady=(0,20))
+        
+        # Subject selection
+        tk.Label(page, text="Select Subject:", font=("Helvetica", 14), bg="#ECF0F1", fg="#34495E")\
+          .pack(pady=(0,10))
+        subject_list = ["Data Visualization", "Machine Learning", "App Development"]
+        subject_combo = ttk.Combobox(page, values=subject_list, font=("Helvetica", 12), state="readonly")
+        subject_combo.current(0)
+        subject_combo.pack(pady=(0,20))
+        
+        # Date selection (here, enter the month in YYYY-MM format)
+        tk.Label(page, text="Enter Month (YYYY-MM):", font=("Helvetica", 14), bg="#ECF0F1", fg="#34495E")\
+          .pack(pady=(0,10))
+        date_entry = tk.Entry(page, font=("Helvetica", 12), width=20)
+        date_entry.pack(pady=(0,20))
+        
+        def generate_report_action():
+            selected_subject = subject_combo.get()
+            month_year = date_entry.get().strip()
+            if not month_year:
+                messagebox.showwarning("Input Error", "Please enter a valid month in YYYY-MM format.")
+                return
+            
+            report_df = report.generate_monthly_report(selected_subject, month_year)
+            if report_df is None:
+                messagebox.showinfo("No Data", "No attendance data found for this month and subject.")
+                return
+            
+            # Save the report and notify the user
+            report_file = report.save_report(report_df, selected_subject, month_year)
+            messagebox.showinfo("Report Generated", f"Monthly report saved at:\n{report_file}")
+        
+        tk.Button(page, text="Generate Report", font=("Helvetica", 12, "bold"),
+                  command=generate_report_action, bg="#1ABC9C", fg="white", padx=20, pady=10)\
                   .pack(pady=10)
         
         self.current_page = page
