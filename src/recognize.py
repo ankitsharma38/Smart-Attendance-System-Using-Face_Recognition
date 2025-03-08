@@ -9,7 +9,7 @@ import threading
 import tkinter as tk
 from utils import load_student_data
 
-# Global subject variable. Change as needed.
+# Global subject variable.
 SUBJECT = "Data Visualization"
 
 def show_popup(message="Attendance Marked Successfully", duration=2000):

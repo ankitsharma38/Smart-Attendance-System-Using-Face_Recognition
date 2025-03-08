@@ -7,8 +7,8 @@ from datetime import datetime  # Added for report timestamp
 
 import report
 import enroll      # for enrolling student 
-import recognize   # recognize the face ---actual recognition code.
-from utils import load_student_data  # Loads all student data from the students folder
+import recognize   # For Recognizing the face
+from utils import load_student_data  # For load the data from student folder
 
 SUBJECT = "Data Visualization"
 
