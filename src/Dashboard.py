@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, filedialog, messagebox, simpledialog
 import threading
 import pandas as pd
 import os
@@ -11,6 +11,12 @@ import recognize   # For Recognizing the face
 from utils import load_student_data  # For load the data from student folder
 
 SUBJECT = "Data Visualization"
+
+# Admin credentials (in a real app, store securely)
+ADMIN_CREDENTIALS = {
+    "admin_id": "admin",
+    "password": "admin123"
+}
 
 def view_attendance_file():
     file_path = filedialog.askopenfilename(
@@ -67,20 +73,37 @@ class Dashboard(tk.Tk):
         }
         
         tk.Button(self.sidebar_frame, text="Home",
-                  command=self.show_welcome_page, **btn_config).pack(pady=10)
+                command=self.show_welcome_page, **btn_config).pack(pady=10)
         tk.Button(self.sidebar_frame, text="Add Student",
-                  command=self.show_add_student_page, **btn_config).pack(pady=10)
+                command=self.authenticate_and_show_add_student, **btn_config).pack(pady=10)
         tk.Button(self.sidebar_frame, text="Mark Attendance",
-                  command=self.show_mark_attendance_page, **btn_config).pack(pady=10)
+                command=self.show_mark_attendance_page, **btn_config).pack(pady=10)
         tk.Button(self.sidebar_frame, text="View Attendance",
-                  command=self.show_view_attendance_page, **btn_config).pack(pady=10)
+                command=self.show_view_attendance_page, **btn_config).pack(pady=10)
         tk.Button(self.sidebar_frame, text="Generate Report",
-                  command=self.show_generate_report_page, **btn_config).pack(pady=10)
+                command=self.show_generate_report_page, **btn_config).pack(pady=10)
         tk.Button(self.sidebar_frame, text="View Students",
-                  command=self.show_view_students_page, **btn_config).pack(pady=10)
+                command=self.show_view_students_page, **btn_config).pack(pady=10)
         tk.Button(self.sidebar_frame, text="Exit",
-                  command=self.quit, **btn_config).pack(pady=10)
-    
+                command=self.quit, **btn_config).pack(pady=10)
+
+    #authentication part
+    def authenticate_and_show_add_student(self):
+        """Authenticate admin before showing add student page"""
+        admin_id = simpledialog.askstring("Admin Authentication", "Enter Admin ID:", parent=self)
+        if admin_id is None:  # User clicked cancel
+            return
+            
+        password = simpledialog.askstring("Admin Authentication", "Enter Password:", parent=self, show='*')
+        if password is None:  # User clicked cancel
+            return
+            
+        if admin_id != ADMIN_CREDENTIALS["admin_id"] or password != ADMIN_CREDENTIALS["password"]:
+            messagebox.showerror("Authentication Failed", "Invalid admin credentials")
+            return
+            
+        self.show_add_student_page()
+
     def clear_content(self):
         if self.current_page is not None:
             self.current_page.destroy()
