@@ -12,7 +12,7 @@ from utils import load_student_data
 # Global subject variable.
 SUBJECT = "Data Visualization"
 
-def show_popup(message="Attendance Marked Successfully", duration=2000):
+def show_popup(message="Attendance Marked Successfully", duration=5000):
     """
     Display a popup window with the given message for the specified duration (in milliseconds).
     """
