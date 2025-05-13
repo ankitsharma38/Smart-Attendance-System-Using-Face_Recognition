@@ -216,6 +216,7 @@ class Dashboard(tk.Tk):
                                  bg="#ECF0F1", fg="#34495E")
         subject_label.pack(pady=(0,10))
         
+        #You can cahange here Subject 
         subject_list = ["Data Visualization", "Machine Learning", "App Development"]
         subject_combo = ttk.Combobox(page, values=subject_list, font=("Helvetica", 12), state="readonly")
         subject_combo.current(0)  # Default subject
